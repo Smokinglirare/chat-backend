@@ -14,9 +14,7 @@ const io = new Server(server, {
     }
   });
 
-app.get("/", (req, res) => {
-    res.send("<h1>Hello World</h1>");
-});
+
 
 io.on("connection", (socket) => {
     console.log("En användare har anslutit");
@@ -27,6 +25,7 @@ io.on("connection", (socket) => {
 
     socket.on("chat message", (data) => {
         console.log(`message : ${data}`)
+        io.emit("chat message", data);
 })
 
 })
