@@ -22,11 +22,11 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         console.log("En användare har lämnat")
     })
-
     socket.on("chat message", (data) => {
         console.log(`message : ${data}`)
-        io.emit("chat message", data);
+        socket.broadcast.emit("message received", data);
 })
+
 
 })
 
