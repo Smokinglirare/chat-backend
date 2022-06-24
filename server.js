@@ -4,6 +4,8 @@ const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 
+const db = require("./config/db");
+
 
 const port = 4000;
 
@@ -36,11 +38,23 @@ io.on("connection", (socket) => {
     console.log(` ${socket.id} message : ${data}`)
     socket.to(data.roomName).emit("message received", data);
   })
-  socket.on("create room", (room) => {
+  socket.on("create_room", (room) => {
     rooms[room] = {
       name: room
     }
     console.log(rooms);
+    console.log(room)
+    db.serialize(function() {
+      console.log('inserting room to database');
+      const sql = "INSERT INTO rooms (name) VALUES ('" + room + "')";
+      console.log(sql)
+      db.run(sql);
+    });
+  /*  db.serialize(function() {
+      const insertRoom =  "INSERT INTO rooms (name) VALUES (?)";
+      db.run(insertRoom, [room.roomName]);
+    }) */
+   
   })
 
 
@@ -48,7 +62,10 @@ io.on("connection", (socket) => {
     console.log(`${socket.id} har anslutit till ${room}`)
     socket.join(room);
     io.to(room).emit("joined_room", socket.id);
-    console.log(socket.rooms)
+   // console.log(socket.rooms)
+   
+    
+    
   })
   socket.on("delete_room", (room) => {
     io.in(room).socketsLeave("room");
