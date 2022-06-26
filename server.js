@@ -29,10 +29,17 @@ io.on("connection", (socket) => {
   socket.on("setUsername", (name) => {
     socket.username = name,
     console.log(socket.username)
+    console.log(name)
+    db.serialize(function() {
+      const sql = "INSERT INTO users (name) VALUES ('" + name + "')";
+      console.log(sql)
+      db.run(sql);
+      socket.emit("socketUsername" (name))
   })
+})
   socket.on("disconnect", (reason) => {
     console.log(`${socket.id} har lämnat servern pga ${reason}`)
-    console.log(socket.username)
+    
   })
   socket.on("chat message", (data) => {
     console.log(` ${socket.id} message : ${data}`)
@@ -45,16 +52,27 @@ io.on("connection", (socket) => {
     console.log(rooms);
     console.log(room)
     db.serialize(function() {
-      console.log('inserting room to database');
+      const checkRoom = "select count(*) from rooms where name = '" + room +"'";
+      db.get(checkRoom, function(err, row) {
+        if (err) {
+          console.error("Error rip", err);
+          return;
+        }
+        if (row["count(*)"] !== 0) {
+          console.log('Rummet finns redan.');
+        
+          return;
+      } else {
       const sql = "INSERT INTO rooms (name) VALUES ('" + room + "')";
       console.log(sql)
       db.run(sql);
+    }
     });
   /*  db.serialize(function() {
       const insertRoom =  "INSERT INTO rooms (name) VALUES (?)";
       db.run(insertRoom, [room.roomName]);
     }) */
-   
+  })
   })
 
 
