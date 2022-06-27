@@ -1,3 +1,4 @@
+const e = require("express");
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -16,6 +17,8 @@ const io = new Server(server, {
   }
 });
 
+const users = {}
+
 const rooms = {
   default: {
     name: "Default room"
@@ -25,16 +28,18 @@ const rooms = {
 
 io.on("connection", (socket) => {
   console.log( `${socket.id} har anslutit`);
-
+    
   socket.on("setUsername", (name) => {
-    socket.username = name,
-    console.log(socket.username)
+  //  socket.username = name,
+  //  console.log(socket.username)
+  //  console.log(name)
+    users[socket.id] = name
     console.log(name)
+    
     db.serialize(function() {
       const sql = "INSERT INTO users (name) VALUES ('" + name + "')";
       console.log(sql)
       db.run(sql);
-      socket.emit("socketUsername" (name))
   })
 })
   socket.on("disconnect", (reason) => {
@@ -43,7 +48,8 @@ io.on("connection", (socket) => {
   })
   socket.on("chat message", (data) => {
     console.log(` ${socket.id} message : ${data}`)
-    socket.to(data.roomName).emit("message received", data);
+    socket.to(data.roomName).emit("message received", data, users[socket.id] = data.username);
+    
   })
   socket.on("create_room", (room) => {
     rooms[room] = {
@@ -77,9 +83,11 @@ io.on("connection", (socket) => {
 
 
   socket.on("join_room", (room) => {
+   
     console.log(`${socket.id} har anslutit till ${room}`)
     socket.join(room);
     io.to(room).emit("joined_room", socket.id);
+    
    // console.log(socket.rooms)
    
     
