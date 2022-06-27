@@ -6,7 +6,8 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 
 const db = require("./config/db");
-
+const roomsModel = require("./models/rooms.models");
+const usersModel = require("./models/users.models");
 
 const port = 4000;
 
@@ -17,7 +18,7 @@ const io = new Server(server, {
   }
 });
 
-const users = {}
+
 
 const rooms = {
   default: {
@@ -25,15 +26,19 @@ const rooms = {
   },
 };
 
+//app.use(roomsModel);
+
+//app.use(usersModel);
+
 
 io.on("connection", (socket) => {
   console.log( `${socket.id} har anslutit`);
     
   socket.on("setUsername", (name) => {
-  //  socket.username = name,
+    socket.username = name,
   //  console.log(socket.username)
   //  console.log(name)
-    users[socket.id] = name
+   // users[socket.id] = name
     console.log(name)
     
     db.serialize(function() {
@@ -48,7 +53,13 @@ io.on("connection", (socket) => {
   })
   socket.on("chat message", (data) => {
     console.log(` ${socket.id} message : ${data}`)
-    socket.to(data.roomName).emit("message received", data, users[socket.id] = data.username);
+    socket.to(data.roomName).emit("message received", data);
+    db.serialize(function() {
+      const sql = "INSERT INTO messages ( message, room_id, user_id, created) VALUES ('" + data.chatMessage + "','" + data.roomName + "','" + data.username + "', datetime('now','localtime') );"
+     // const sql = "INSERT INTO messages ( message, room_id, user_id, created) VALUES ('" + data.chatMessage + "','"+ data.roomName +"', '"+ data.username +"',  + "2018-01-03 08:50:182" +);"
+      console.log(sql)
+      db.run(sql);
+  })
     
   })
   socket.on("create_room", (room) => {
@@ -83,7 +94,16 @@ io.on("connection", (socket) => {
 
 
   socket.on("join_room", (room) => {
-   
+    const checkMessages = "select * from messages where room_id = '" + room +"'";
+    db.all(checkMessages, function(err, row) {
+      if (err) {
+        console.error("Error rip", err);
+        return;
+      } 
+      socket.to(room).emit("oldMessages", row);
+      console.log(row)
+    });
+
     console.log(`${socket.id} har anslutit till ${room}`)
     socket.join(room);
     io.to(room).emit("joined_room", socket.id);
@@ -95,6 +115,11 @@ io.on("connection", (socket) => {
   })
   socket.on("delete_room", (room) => {
     io.in(room).socketsLeave("room");
+    db.serialize(function() {
+    const sql = "DELETE FROM rooms WHERE name = '" + room +"';"
+      console.log(sql)
+      db.run(sql);
+    })
   })
  
 

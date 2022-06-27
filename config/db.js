@@ -6,11 +6,25 @@ const db = new sqlite3.Database("./db.sqlite", (error) => {
     throw error;
   }
 
+  
+  const messagesStatement = `
+       CREATE TABLE messages (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           message TEXT,
+           room_id TEXT,
+           user_id INTEGER,
+           created TEXT
+           
+       )
+    `;
 
   const roomsStatement = `
   CREATE TABLE rooms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT
+    name TEXT,
+    FOREIGN KEY (name)
+    REFERENCES messages (room_id)
+    ON DELETE CASCADE
   )
   `
   const usersStatement = `
@@ -20,15 +34,6 @@ const db = new sqlite3.Database("./db.sqlite", (error) => {
   )
   `
 
-  const messagesStatement = `
-       CREATE TABLE messages (
-           id INTEGER PRIMARY KEY AUTOINCREMENT,
-           message TEXT,
-           room_id INTEGER,
-           user_id INTEGER,
-           created TEXT
-       )
-    `;
 
   db.run(roomsStatement, (error) => {
     if (error) {
