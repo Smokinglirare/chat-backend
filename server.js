@@ -7,9 +7,6 @@ const { Server } = require("socket.io");
 const fs = require("fs");
 
 const db = require("./config/db");
-const roomsModel = require("./models/rooms.models");
-const usersModel = require("./models/users.models");
-
 
 const port = 4000;
 
@@ -26,29 +23,29 @@ const rooms = {
   },
 };
 
-//app.use(roomsModel);
-
-//app.use(usersModel);
-
-
-
 io.on("connection", (socket) => {
   socket.use(([event, ...args], next) => {
-    const date = new Date().toLocaleString('it-IT');
-   
-   console.log(date)
-    if(event === "chat message") 
-    {fs.appendFile('./config/log.txt', `${JSON.stringify(args) + date } \r\n`, function (err) {
-      if (err) { throw err;} 
-      
-      else{
-        console.log('Sparade information till log.txt');
-      
-      }
-    });
-  }
-    
-    
+    const date = new Date().toLocaleString("it-IT");
+    console.log(date);
+    if (
+      event === "chat message" &&
+      args.length === 1 &&
+      args[0].hasOwnProperty("chatMessage") &&
+      args[0].chatMessage !== "" 
+    ) {
+      fs.appendFile(
+        "./config/log.txt",
+        `${JSON.stringify(args) + date} \r\n`,
+        function (err) {
+          if (err) {
+            throw err;
+          } else {
+            console.log("Sparade information till log.txt");
+          }
+        }
+      );
+    }
+
     next();
   });
   console.log(`${socket.id} har anslutit`);
@@ -70,23 +67,23 @@ io.on("connection", (socket) => {
     console.log(`${socket.id} har lämnat servern pga ${reason}`);
   });
   socket.on("chat message", (data) => {
-
-    console.log(` ${socket.id} message : ${data}`);
-    socket.to(data.roomName).emit("message received", data);
-    db.serialize(function () {
-     
-      const sql =
-        "INSERT INTO messages ( message, room_name, user_id, created) VALUES ('" +
-        data.chatMessage +
-        "','" +
-        data.roomName +
-        "','" +
-        data.username +
-        "', datetime('now','localtime') );";
-      // const sql = "INSERT INTO messages ( message, room_id, user_id, created) VALUES ('" + data.chatMessage + "','"+ data.roomName +"', '"+ data.username +"',  + "2018-01-03 08:50:182" +);"
-      console.log(sql);
-      db.run(sql);
-    });
+    if (data.chatMessage !== "") {
+      console.log(` ${socket.id} message : ${data}`);
+      socket.to(data.roomName).emit("message received", data);
+      db.serialize(function () {
+        const sql =
+          "INSERT INTO messages ( message, room_name, user_id, created) VALUES ('" +
+          data.chatMessage +
+          "','" +
+          data.roomName +
+          "','" +
+          data.username +
+          "', datetime('now','localtime') );";
+        // const sql = "INSERT INTO messages ( message, room_id, user_id, created) VALUES ('" + data.chatMessage + "','"+ data.roomName +"', '"+ data.username +"',  + "2018-01-03 08:50:182" +);"
+        console.log(sql);
+        db.run(sql);
+      });
+    }
   });
   socket.on("create_room", (room) => {
     rooms[room] = {
