@@ -1,0 +1,5 @@
+[{"chatMessage":"Tja pappa Hasse!","roomName":"Rum09","username":"Jönsa"}]2022-06-28T11:14:04.890Z 
+[{"chatMessage":"Tjena Jönsa, leeeget?","roomName":"Rum09","username":"Pappa Hasse"}]2022-06-28T11:14:21.455Z 
+[{"chatMessage":"Tja pappa Hasse!","roomName":"Rum09","username":"Jönsa"}]undefined 
+[{"chatMessage":"Tja pappa Hasse!","roomName":"Rum09","username":"Jönsa"}]12:27:50 
+[{"chatMessage":"Tja pappa Hasse!","roomName":"Rum09","username":"Jönsa"}]28/6/2022, 12:29:27 
