@@ -55,7 +55,7 @@ io.on("connection", (socket) => {
     console.log(` ${socket.id} message : ${data}`)
     socket.to(data.roomName).emit("message received", data);
     db.serialize(function() {
-      const sql = "INSERT INTO messages ( message, room_id, user_id, created) VALUES ('" + data.chatMessage + "','" + data.roomName + "','" + data.username + "', datetime('now','localtime') );"
+      const sql = "INSERT INTO messages ( message, room_name, user_id, created) VALUES ('" + data.chatMessage + "','" + data.roomName + "','" + data.username + "', datetime('now','localtime') );"
      // const sql = "INSERT INTO messages ( message, room_id, user_id, created) VALUES ('" + data.chatMessage + "','"+ data.roomName +"', '"+ data.username +"',  + "2018-01-03 08:50:182" +);"
       console.log(sql)
       db.run(sql);
@@ -69,7 +69,7 @@ io.on("connection", (socket) => {
     console.log(rooms);
     console.log(room)
     db.serialize(function() {
-      const checkRoom = "select count(*) from rooms where name = '" + room +"'";
+      const checkRoom = "select count(*) from rooms where room_name = '" + room +"'";
       db.get(checkRoom, function(err, row) {
         if (err) {
           console.error("Error rip", err);
@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
         
           return;
       } else {
-      const sql = "INSERT INTO rooms (name) VALUES ('" + room + "')";
+      const sql = "INSERT INTO rooms (room_name) VALUES ('" + room + "')";
       console.log(sql)
       db.run(sql);
     }
@@ -94,7 +94,7 @@ io.on("connection", (socket) => {
 
 
   socket.on("join_room", (room) => {
-    const checkMessages = "select * from messages where room_id = '" + room +"'";
+    const checkMessages = "select * from messages where room_name = '" + room +"'";
     db.all(checkMessages, function(err, row) {
       if (err) {
         console.error("Error rip", err);
@@ -116,7 +116,12 @@ io.on("connection", (socket) => {
   socket.on("delete_room", (room) => {
     io.in(room).socketsLeave("room");
     db.serialize(function() {
-    const sql = "DELETE FROM rooms WHERE name = '" + room +"';"
+      const sql = "DELETE FROM rooms WHERE room_name = '" + room +"';"
+      console.log(sql)
+      db.run(sql);
+    })
+    db.serialize(function() {
+      const sql = "DELETE FROM messages WHERE room_name = '" + room +"';"
       console.log(sql)
       db.run(sql);
     })

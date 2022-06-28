@@ -5,13 +5,14 @@ const db = new sqlite3.Database("./db.sqlite", (error) => {
     console.log(error.message);
     throw error;
   }
-
+  db.get("PRAGMA foreign_keys = ON")
+  
   
   const messagesStatement = `
        CREATE TABLE messages (
-           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           id INTEGER PRIMARY KEY ,
            message TEXT,
-           room_id TEXT,
+           room_name TEXT,
            user_id INTEGER,
            created TEXT
            
@@ -20,26 +21,31 @@ const db = new sqlite3.Database("./db.sqlite", (error) => {
 
   const roomsStatement = `
   CREATE TABLE rooms (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    FOREIGN KEY (name)
-    REFERENCES messages (room_id)
-    ON DELETE CASCADE
+    id INTEGER PRIMARY KEY,
+    room_name TEXT
+    
   )
   `
   const usersStatement = `
   CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY ,
     name TEXT
   )
   `
-
+  db.run(messagesStatement, (error) => {
+    if (error) {
+      console.error(error.message);
+    } else {
+      const insert = "INSERT INTO messages ( message, room_name, user_id, created) VALUES ( ?,?, ? ,? )";
+      db.run(insert, ["Hej hur är läget?", "gurras rum", "peter pan", "2018-01-03 08:50:18"]);
+    }
+  });
 
   db.run(roomsStatement, (error) => {
     if (error) {
       console.error(error.message);
     } else {
-      const insert = "INSERT INTO rooms (name) VALUES (?)";
+      const insert = "INSERT INTO rooms (room_name) VALUES (?)";
       db.run(insert, ["Hemliga rummet"]);
     }
   });
@@ -55,14 +61,11 @@ db.run(usersStatement, (error) => {
 });
 
 
-db.run(messagesStatement, (error) => {
-  if (error) {
-    console.error(error.message);
-  } else {
-    const insert = "INSERT INTO messages ( message, room_id, user_id, created) VALUES ( ?,?, ? ,? )";
-    db.run(insert, ["Hej hur är läget?", 1, 1, "2018-01-03 08:50:18"]);
-  }
-});
+
 
 });
 module.exports = db;
+
+//FOREIGN KEY (id)
+  //     REFERENCES messages (id) 
+    // ON DELETE CASCADE
