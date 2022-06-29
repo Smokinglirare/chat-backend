@@ -31,7 +31,7 @@ io.on("connection", (socket) => {
       event === "chat message" &&
       args.length === 1 &&
       args[0].hasOwnProperty("chatMessage") &&
-      args[0].chatMessage !== "" 
+      args[0].chatMessage !== ""
     ) {
       fs.appendFile(
         "./config/log.txt",
@@ -95,10 +95,6 @@ io.on("connection", (socket) => {
       const checkRoom =
         "select count(*) from rooms where room_name = '" + room + "'";
       db.get(checkRoom, function (err, row) {
-        if (err) {
-          console.error("Error rip", err);
-          return;
-        }
         if (row["count(*)"] !== 0) {
           console.log("Rummet finns redan.");
 
@@ -117,22 +113,31 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join_room", (room) => {
-    const checkMessages =
-      "select * from messages where room_name = '" + room + "'";
-    db.all(checkMessages, function (err, row) {
-      if (err) {
-        console.error("Error rip", err);
-        return;
-      }
-      socket.to(room).emit("oldMessages", row);
-      console.log(row);
+   /* db.serialize(function () {
+      const sql = "select * from messages where room_name = '" + room + "'";
+      db.all(sql, function (err, rows) {
+        socket.to(room).emit("oldMessages", rows);
+        console.log(rows);
+      });
+    }); */
+
+    db.serialize(function () {
+      const sql =  "select count(*) from rooms where room_name = '" + room + "'";
+      db.get(sql, function (err, row) {
+         if (row["count(*)"] !== 0) {
+          console.log(row);
+        console.log(`${socket.id} har anslutit till ${room}`);
+        socket.join(room);
+        io.to(room).emit("joined_room", socket.id);
+        } else {
+          const sql = "INSERT INTO rooms (room_name) VALUES ('" + room + "')";
+          console.log(sql);
+          db.run(sql);
+          console.log("vafalls")
+          return;
+        }
+      });
     });
-
-    console.log(`${socket.id} har anslutit till ${room}`);
-    socket.join(room);
-    io.to(room).emit("joined_room", socket.id);
-
-    // console.log(socket.rooms)
   });
   socket.on("delete_room", (room) => {
     io.in(room).socketsLeave("room");
@@ -145,6 +150,14 @@ io.on("connection", (socket) => {
       const sql = "DELETE FROM messages WHERE room_name = '" + room + "';";
       console.log(sql);
       db.run(sql);
+    });
+  });
+
+  db.serialize(function () {
+    const sql = "SELECT room_name FROM rooms";
+    console.log(sql);
+    db.all(sql, (err, rows) => {
+      socket.emit("allRooms", rows);
     });
   });
 });

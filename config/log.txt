@@ -1,2 +1,0 @@
-[{"chatMessage":"tjena","roomName":"rum029409204905905201","username":"pelle pan"}]28/6/2022, 14:29:59 
-[{"chatMessage":"tjena","roomName":"rum029409204905905201","username":"pelle pan"}]28/6/2022, 14:30:00 
